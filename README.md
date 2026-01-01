@@ -1,2 +1,3 @@
 # Pomodoro
-building Pomodoro timer using claude AI to increase performance and quality of work
+## 1 clone reposotiry 
+## 2 use live server  and have fun

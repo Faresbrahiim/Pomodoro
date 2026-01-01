@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pomodoro Pro</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        max-width: 1200px;
+        width: 100%;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .timer-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    h1 {
+        font-size: 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
+    }
+
+    h2 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .mode-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .mode-focus {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .mode-break {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .timer-display {
+        font-size: 80px;
+        font-weight: 700;
+        color: #333;
+        margin: 30px 0;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .progress-ring {
+        position: relative;
+        width: 280px;
+        height: 280px;
+        margin: 20px 0;
+    }
+
+    .progress-ring svg {
+        transform: rotate(-90deg);
+    }
+
+    .progress-ring-circle {
+        transition: stroke-dashoffset 0.3s ease;
+        stroke: #667eea;
+        stroke-width: 8;
+        fill: none;
+        stroke-linecap: round;
+    }
+
+    .progress-ring-bg {
+        stroke: #e0e0e0;
+        stroke-width: 8;
+        fill: none;
+    }
+
+    .settings {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .setting-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .setting-group label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .setting-group input {
+        width: 70px;
+        padding: 8px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 16px;
+        transition: border 0.3s ease;
+    }
+
+    .setting-group input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .controls {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    button {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-secondary:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-small {
+        padding: 6px 15px;
+        font-size: 14px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 20px;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+    }
+
+    .stat-box:nth-child(2) {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stat-box:nth-child(3) {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .stat-box:nth-child(4) {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        opacity: 0.9;
+    }
+
+    .todo-list {
+        max-height: 400px;
+        overflow-y: auto;
+        margin: 20px 0;
+    }
+
+    .todo-input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .todo-input-group input {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .todo-input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .todo-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .todo-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .todo-item.completed {
+        opacity: 0.6;
+    }
+
+    .todo-item.completed .todo-text {
+        text-decoration: line-through;
+    }
+
+    .todo-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .todo-text {
+        flex: 1;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .todo-delete {
+        background: #ff4757;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .export-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #e0e0e0;
+    }
+
+    .credits {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #f0f0f0;
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+    }
+
+    .credits .heart {
+        display: inline-block;
+        color: #ff4757;
+        animation: heartbeat 1.5s ease-in-out infinite;
+        margin: 0 3px;
+    }
+
+    @keyframes heartbeat {
+        0%, 100% { transform: scale(1); }
+        25% { transform: scale(1.2); }
+        50% { transform: scale(1); }
+    }
+
+    .credits .author {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .credits .author:hover {
+        letter-spacing: 1px;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            grid-template-columns: 1fr;
+        }
+
+        .timer-display {
+            font-size: 60px;
+        }
+
+        .progress-ring {
+            width: 220px;
+            height: 220px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card timer-card">
+        <h1>🍅 Pomodoro Pro</h1>
+        
+        <div class="mode-badge" id="modeBadge">Focus Session</div>
+        
+        <div class="progress-ring">
+            <svg width="280" height="280">
+                <circle class="progress-ring-bg" cx="140" cy="140" r="130"></circle>
+                <circle class="progress-ring-circle" id="progressCircle" cx="140" cy="140" r="130"></circle>
+            </svg>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <div class="timer-display" id="timerDisplay">25:00</div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <div class="setting-group">
+                <label>Focus (min)</label>
+                <input type="number" id="focusMinutes" value="25" min="1" max="60">
+            </div>
+            <div class="setting-group">
+                <label>Break (min)</label>
+                <input type="number" id="breakMinutes" value="5" min="1" max="30">
+            </div>
+            <div class="setting-group">
+                <label>Long Break (min)</label>
+                <input type="number" id="longBreakMinutes" value="15" min="1" max="60">
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="startTimer()">Start</button>
+            <button class="btn-secondary" onclick="pauseTimer()">Pause</button>
+            <button class="btn-secondary" onclick="resetTimer()">Reset</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value" id="todayMinutes">0</div>
+                <div class="stat-label">Today (min)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="completedSessions">0</div>
+                <div class="stat-label">Sessions</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="weekMinutes">0</div>
+                <div class="stat-label">This Week (min)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="totalMinutes">0</div>
+                <div class="stat-label">All Time (min)</div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <button class="btn-secondary btn-small" onclick="exportData()">📊 Export Full Report (CSV)</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2> TODO</h2>
+        
+        <div class="todo-input-group">
+            <input type="text" id="todoInput" placeholder="Add a new task..." onkeypress="handleTodoKeypress(event)">
+            <button class="btn-primary" onclick="addTodo()">Add</button>
+        </div>
+
+        <div class="todo-list" id="todoList"></div>
+
+        <div class="export-section">
+            <button class="btn-secondary btn-small" onclick="exportTodos()">📥 Export Tasks (TXT)</button>
+        </div>
+        
+        <div class="credits">
+            Made with <span class="heart">❤️</span> by <span class="author">ibrahim_fares</span>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden audio element for completion sound -->
+<audio id="completionSound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUKnn77RgGwU7k9r0yHgrBSh+zPLaizsKGGS57+mjUBELTKXh8bllHAU2jdXzzn0vBSeFz/PajDcIF2W77OihURELTKPi8bllHAU2jdXzzn0vBSeFz/PajDcIF2a77OigUBELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8bllHAU2jdXzzn0vBSaFz/PajDcIF2a77OihTxELTKPi8Q==" type="audio/wav">
+</audio>
+
+<script>
+    let interval = null;
+    let timeLeft = 0;
+    let totalTime = 0;
+    let isBreak = false;
+    let isLongBreak = false;
+    let completedPomodoros = 0;
+
+    const LONG_BREAK_AFTER = 4;
+
+    // State management
+    let state = {
+        dailyStats: {},
+        todos: [],
+        sessions: []
+    };
+
+    // Initialize
+    function init() {
+        loadState();
+        updateDisplay();
+        updateStats();
+        renderTodos();
+        resetTimer();
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem('pomodoroState');
+        if (saved) {
+            state = JSON.parse(saved);
+        }
+    }
+
+    function saveState() {
+        localStorage.setItem('pomodoroState', JSON.stringify(state));
+    }
+
+    function getTodayKey() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function getWeekStart() {
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        return new Date(now.setDate(diff)).toISOString().slice(0, 10);
+    }
+
+    function playCompletionSound() {
+        const audio = document.getElementById('completionSound');
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log('Audio play failed:', e));
+    }
+
+    function startTimer() {
+        if (interval) return;
+
+        if (timeLeft === 0) {
+            const minutes = isLongBreak ? getLongBreakMinutes() : (isBreak ? getBreakMinutes() : getFocusMinutes());
+            timeLeft = minutes * 60;
+            totalTime = timeLeft;
+        }
+
+        interval = setInterval(() => {
+            timeLeft--;
+            updateDisplay();
+
+            if (timeLeft === 0) {
+                clearInterval(interval);
+                interval = null;
+                handleTimerComplete();
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        clearInterval(interval);
+        interval = null;
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        const minutes = isLongBreak ? getLongBreakMinutes() : (isBreak ? getBreakMinutes() : getFocusMinutes());
+        timeLeft = minutes * 60;
+        totalTime = timeLeft;
+        updateDisplay();
+    }
+
+    function handleTimerComplete() {
+        playCompletionSound();
+        
+        const todayKey = getTodayKey();
+
+        if (!isBreak && !isLongBreak) {
+            // Focus session completed
+            const minutes = getFocusMinutes();
+            
+            if (!state.dailyStats[todayKey]) {
+                state.dailyStats[todayKey] = { minutes: 0, sessions: 0 };
+            }
+            
+            state.dailyStats[todayKey].minutes += minutes;
+            state.dailyStats[todayKey].sessions += 1;
+            
+            state.sessions.push({
+                date: new Date().toISOString(),
+                duration: minutes,
+                type: 'focus'
+            });
+
+            completedPomodoros++;
+
+            saveState();
+            updateStats();
+
+            if (completedPomodoros % LONG_BREAK_AFTER === 0) {
+                isLongBreak = true;
+                isBreak = false;
+                alert('🎉 Great work! Time for a long break!');
+            } else {
+                isBreak = true;
+                isLongBreak = false;
+                alert('✅ Focus session complete! Time for a short break.');
+            }
+        } else {
+            // Break completed
+            isBreak = false;
+            isLongBreak = false;
+            alert('💪 Break over! Ready for the next focus session?');
+        }
+
+        updateModeBadge();
+        resetTimer();
+    }
+
+    function getFocusMinutes() {
+        return parseInt(document.getElementById('focusMinutes').value) || 25;
+    }
+
+    function getBreakMinutes() {
+        return parseInt(document.getElementById('breakMinutes').value) || 5;
+    }
+
+    function getLongBreakMinutes() {
+        return parseInt(document.getElementById('longBreakMinutes').value) || 15;
+    }
+
+    function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timerDisplay').innerText = 
+            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        // Update progress ring
+        const circumference = 2 * Math.PI * 130;
+        const progress = totalTime > 0 ? (timeLeft / totalTime) : 1;
+        const offset = circumference * (1 - progress);
+        document.getElementById('progressCircle').style.strokeDasharray = circumference;
+        document.getElementById('progressCircle').style.strokeDashoffset = offset;
+    }
+
+    function updateModeBadge() {
+        const badge = document.getElementById('modeBadge');
+        if (isLongBreak) {
+            badge.innerText = '☕ Long Break';
+            badge.className = 'mode-badge mode-break';
+        } else if (isBreak) {
+            badge.innerText = '☕ Short Break';
+            badge.className = 'mode-badge mode-break';
+        } else {
+            badge.innerText = '🎯 Focus Session';
+            badge.className = 'mode-badge mode-focus';
+        }
+    }
+
+    function updateStats() {
+        const todayKey = getTodayKey();
+        const weekStart = getWeekStart();
+
+        const todayData = state.dailyStats[todayKey] || { minutes: 0, sessions: 0 };
+        document.getElementById('todayMinutes').innerText = todayData.minutes;
+        document.getElementById('completedSessions').innerText = todayData.sessions;
+
+        let weekTotal = 0;
+        let allTimeTotal = 0;
+
+        for (const [date, data] of Object.entries(state.dailyStats)) {
+            allTimeTotal += data.minutes;
+            if (date >= weekStart) {
+                weekTotal += data.minutes;
+            }
+        }
+
+        document.getElementById('weekMinutes').innerText = weekTotal;
+        document.getElementById('totalMinutes').innerText = allTimeTotal;
+    }
+
+    // Todo functions
+    function addTodo() {
+        const input = document.getElementById('todoInput');
+        const text = input.value.trim();
+        
+        if (text) {
+            state.todos.push({
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            });
+            
+            input.value = '';
+            saveState();
+            renderTodos();
+        }
+    }
+
+    function handleTodoKeypress(event) {
+        if (event.key === 'Enter') {
+            addTodo();
+        }
+    }
+
+    function toggleTodo(id) {
+        const todo = state.todos.find(t => t.id === id);
+        if (todo) {
+            todo.completed = !todo.completed;
+            saveState();
+            renderTodos();
+        }
+    }
+
+    function deleteTodo(id) {
+        state.todos = state.todos.filter(t => t.id !== id);
+        saveState();
+        renderTodos();
+    }
+
+    function renderTodos() {
+        const list = document.getElementById('todoList');
+        
+        if (state.todos.length === 0) {
+            list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No tasks yet. Add one above!</p>';
+            return;
+        }
+
+        list.innerHTML = state.todos.map(todo => `
+            <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                <input type="checkbox" class="todo-checkbox" 
+                    ${todo.completed ? 'checked' : ''} 
+                    onchange="toggleTodo(${todo.id})">
+                <span class="todo-text">${todo.text}</span>
+                <button class="todo-delete" onclick="deleteTodo(${todo.id})">Delete</button>
+            </div>
+        `).join('');
+    }
+
+    // Export functions
+    function exportData() {
+        let csv = 'Date,Focus Minutes,Sessions Completed\n';
+        
+        const sortedDates = Object.keys(state.dailyStats).sort();
+        
+        for (const date of sortedDates) {
+            const data = state.dailyStats[date];
+            csv += `${date},${data.minutes},${data.sessions}\n`;
+        }
+
+        csv += '\nDetailed Session Log\n';
+        csv += 'Timestamp,Duration (min),Type\n';
+        
+        for (const session of state.sessions) {
+            csv += `${session.date},${session.duration},${session.type}\n`;
+        }
+
+        downloadFile(csv, `pomodoro-stats-${getTodayKey()}.csv`, 'text/csv');
+    }
+
+    function exportTodos() {
+        let txt = `Pomodoro Tasks - ${getTodayKey()}\n`;
+        txt += '='.repeat(50) + '\n\n';
+        
+        const pending = state.todos.filter(t => !t.completed);
+        const completed = state.todos.filter(t => t.completed);
+
+        txt += `PENDING TASKS (${pending.length}):\n`;
+        txt += '-'.repeat(50) + '\n';
+        pending.forEach((todo, i) => {
+            txt += `${i + 1}. ${todo.text}\n`;
+        });
+
+        txt += `\n\nCOMPLETED TASKS (${completed.length}):\n`;
+        txt += '-'.repeat(50) + '\n';
+        completed.forEach((todo, i) => {
+            txt += `${i + 1}. ✓ ${todo.text}\n`;
+        });
+
+        downloadFile(txt, `pomodoro-tasks-${getTodayKey()}.txt`, 'text/plain');
+    }
+
+    function downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // Initialize on load
+    init();
+</script>
+
+</body>
+</html>
